@@ -94,6 +94,10 @@ class EmergencyMessagingService : FirebaseMessagingService() {
                 .getOrDefault(TriageLevel.MODERATE)
 
             postNotification(logId = logId, senderLabel = senderLabel, body = body, priority = priority)
+
+            if (priority == TriageLevel.CRITICAL) {
+                com.ilinetech.emergency.alert.AlertBroadcastReceiver.broadcastTrigger(applicationContext)
+            }
         }
     }
 

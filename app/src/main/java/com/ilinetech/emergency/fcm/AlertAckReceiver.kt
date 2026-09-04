@@ -30,6 +30,9 @@ class AlertAckReceiver : BroadcastReceiver() {
         val logId = intent.getLongExtra(EXTRA_LOG_ID, -1L)
         if (logId < 0) return
 
+        // Stop any looping DND-bypass alarm immediately — don't wait on the coroutine below.
+        com.ilinetech.emergency.alert.AlertRingtonePlayer.stop(context)
+
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
