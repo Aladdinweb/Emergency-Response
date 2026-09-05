@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Firebase config — see FCM_NOTES.md for whether to commit this for your setup.
+# Left ignored by default: safer default for a repo that may go public.
+app/google-services.json

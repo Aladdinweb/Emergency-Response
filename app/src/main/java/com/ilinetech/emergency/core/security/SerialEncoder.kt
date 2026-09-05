@@ -86,10 +86,32 @@ object SerialEncoder {
         branchIndex: Int,
         departmentOrdinal: Int,
         keyBytes: ByteArray
+    ): String = encode(
+        wilayaCode = selection.wilaya.code,
+        type = selection.type,
+        institutionIndex = institutionIndex,
+        branchIndex = branchIndex,
+        departmentOrdinal = departmentOrdinal,
+        keyBytes = keyBytes
+    )
+
+    /**
+     * Primitive overload used when the caller only has the raw hierarchy
+     * indices (e.g. recomputing a sibling department's serial at the same
+     * facility from a stored StaffMemberEntity) rather than a full
+     * FacilitySelection with resolved Institution/SubBranch objects.
+     */
+    fun encode(
+        wilayaCode: String,
+        type: EstablishmentType,
+        institutionIndex: Int,
+        branchIndex: Int,
+        departmentOrdinal: Int,
+        keyBytes: ByteArray
     ): String {
         val plain = packBlock(
-            wilayaCode = selection.wilaya.code.toInt(),
-            type = selection.type,
+            wilayaCode = wilayaCode.toInt(),
+            type = type,
             institutionIndex = institutionIndex,
             branchIndex = branchIndex,
             departmentOrdinal = departmentOrdinal

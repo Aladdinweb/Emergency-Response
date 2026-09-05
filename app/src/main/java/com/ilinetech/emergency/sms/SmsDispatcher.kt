@@ -39,8 +39,12 @@ object SmsDispatcher {
         if (recipients.isEmpty()) return 0
 
         val body = SmsPayloadBuilder.build(payload)
-        val smsManager = context.getSystemService(SmsManager::class.java)
-            ?: SmsManager.getDefault()
+        val smsManager = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            context.getSystemService(SmsManager::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            SmsManager.getDefault()
+        }
 
         var sentCount = 0
         for (contact in recipients) {

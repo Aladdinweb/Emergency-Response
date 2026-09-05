@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/onboarding_title"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/onboarding_subtitle"
+            android:textSize="14sp"
+            android:alpha="0.7"
+            android:layout_marginBottom="24dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_wilaya" />
+        <Spinner
+            android:id="@+id/spinnerWilaya"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_establishment_type" />
+        <Spinner
+            android:id="@+id/spinnerEstablishmentType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_institution" />
+        <Spinner
+            android:id="@+id/spinnerInstitution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_sub_branch" />
+        <Spinner
+            android:id="@+id/spinnerSubBranch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_department" />
+        <Spinner
+            android:id="@+id/spinnerDepartment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_role" />
+        <Spinner
+            android:id="@+id/spinnerRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_full_name" />
+        <EditText
+            android:id="@+id/editFullName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_group_id" />
+        <EditText
+            android:id="@+id/editGroupId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_group_id"
+            android:inputType="text"
+            android:layout_marginBottom="16dp" />
+
+        <TextView style="@style/OnboardingLabel" android:text="@string/label_phone_number" />
+        <EditText
+            android:id="@+id/editPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_phone_number"
+            android:inputType="phone"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_number_explainer"
+            android:textSize="12sp"
+            android:alpha="0.7"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/buttonRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/action_register" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

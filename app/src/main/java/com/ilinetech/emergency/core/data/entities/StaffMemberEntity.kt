@@ -24,6 +24,12 @@ data class StaffMemberEntity(
     val department: String,                  // StaffDepartment.name
     val subBranchId: String,
     val institutionId: String,
+    // Raw hierarchy indices, kept alongside the IDs above specifically so a
+    // sibling department's serial at the same facility can be recomputed
+    // later (e.g. Dashboard picking a different target department to alert)
+    // without a server round-trip — see SerialEncoder's primitive encode() overload.
+    val institutionIndex: Int,
+    val branchIndex: Int,
     val groupId: String,                     // shift/group identifier
     val facilitySerial: String,              // SerialEncoder output (institution+branch)
     val deptSerial: String,                  // SerialEncoder output (department)

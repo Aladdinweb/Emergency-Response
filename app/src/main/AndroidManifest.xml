@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Core -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- Foreground service (connection status indicator) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <!-- GSM/SMS fallback -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <application
+        android:name=".EmergencyApp"
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IlineEmergency"
+        tools:targetApi="34">
+
+        <!-- allowBackup="false": StaffMemberEntity/AlertLogEntity data plus the
+             sms_fallback_contacts phone-number directory shouldn't ride along
+             in an Auto Backup blob to the user's Google account by default
+             for an app handling institutional/security data. Revisit if a
+             deliberate encrypted-backup strategy is designed later. -->
+
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false" />
+
+        <!-- FCM -->
+        <service
+            android:name=".fcm.EmergencyMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".fcm.AlertAckReceiver"
+            android:exported="false" />
+
+        <!-- DND-bypass alarm + foreground service -->
+        <receiver
+            android:name=".alert.AlertBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.ilinetech.emergency.action.TRIGGER_ALERT" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".service.ConnectionForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- SMS fallback -->
+        <receiver
+            android:name=".sms.SmsIncomingReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

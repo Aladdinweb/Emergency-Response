@@ -1,0 +1,64 @@
+# © ILINE TECH BY FERAK ALADDIN
+#
+# Builds a debug APK on every push to main and uploads it as a workflow
+# artifact — mirrors the pattern already used for TASHIL-Hub's Windows-runner
+# PyInstaller builds, adapted for Gradle/Android.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   ILINE_SERIAL_KEY_HEX   — the shared AES key for SerialEncoder (hex string,
+#                             32 chars for a 128-bit key). NEVER commit this
+#                             to the repo itself — see AppKeyProvider.kt.
+#   GOOGLE_SERVICES_JSON_B64 — your app/google-services.json file, base64-encoded.
+#                             Get it with: base64 -w0 google-services.json
+#                             (Termux: `base64 google-services.json` works too)
+#
+# Without both secrets set, the build will still run but Firebase-dependent
+# code won't initialize correctly at runtime — the APK will compile either way.
+
+name: Android Debug Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON_B64" ]; then
+            echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > app/google-services.json
+          else
+            echo "GOOGLE_SERVICES_JSON_B64 secret not set — writing an empty placeholder so the build doesn't fail on a missing file."
+            echo '{"project_info":{},"client":[]}' > app/google-services.json
+          fi
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK
+        env:
+          ORG_GRADLE_PROJECT_ILINE_SERIAL_KEY_HEX: ${{ secrets.ILINE_SERIAL_KEY_HEX }}
+        run: gradle assembleDebug --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: emergency-response-debug-apk
+          path: app/build/outputs/apk/debug/*.apk

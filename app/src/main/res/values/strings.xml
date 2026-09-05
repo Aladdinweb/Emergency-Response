@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ILINE Emergency Response</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Enregistrement</string>
+    <string name="onboarding_subtitle">Sélectionnez votre établissement et votre rôle pour recevoir les alertes qui vous concernent.</string>
+    <string name="label_wilaya">Wilaya</string>
+    <string name="label_establishment_type">Type d\'établissement</string>
+    <string name="label_institution">Établissement</string>
+    <string name="label_sub_branch">Polyclinique / Sous-branche</string>
+    <string name="label_department">Département</string>
+    <string name="label_role">Fonction</string>
+    <string name="label_full_name">Nom complet</string>
+    <string name="label_group_id">Groupe / Équipe</string>
+    <string name="label_phone_number">Numéro de téléphone</string>
+    <string name="hint_group_id">ex. Garde de nuit</string>
+    <string name="hint_phone_number">+213 5XX XX XX XX</string>
+    <string name="phone_number_explainer">Utilisé uniquement pour le repli SMS hors ligne si le réseau internet est indisponible.</string>
+    <string name="action_register">S\'enregistrer</string>
+    <string name="error_select_all_fields">Veuillez remplir tous les champs.</string>
+    <string name="error_no_institution_data">Aucun établissement enregistré pour cette wilaya/type pour le moment.</string>
+    <string name="registration_success">Enregistrement réussi.</string>
+    <string name="registration_failed">Échec de l\'enregistrement. Veuillez réessayer.</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">Tableau de bord</string>
+    <string name="nav_logs">Historique</string>
+    <string name="nav_settings">Paramètres</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Tableau de bord</string>
+    <string name="dashboard_no_profile">Aucun profil enregistré.</string>
+    <string name="label_current_profile">Profil actif</string>
+    <string name="label_facility_serial">Série établissement</string>
+    <string name="label_dept_serial">Série département</string>
+    <string name="send_alert_title">Envoyer une alerte</string>
+    <string name="label_priority">Niveau de priorité</string>
+    <string name="label_message">Message</string>
+    <string name="hint_message">Décrivez la situation…</string>
+    <string name="action_send_alert">Envoyer l\'alerte</string>
+    <string name="send_alert_missing_message">Veuillez saisir un message.</string>
+    <string name="send_alert_sms_result">Alerte envoyée par SMS à %1$d destinataire(s).</string>
+    <string name="send_alert_no_contacts">Aucun destinataire SMS enregistré pour cette cible pour le moment.</string>
+    <string name="fcm_publish_not_implemented">La diffusion en ligne (FCM) nécessite un composant serveur non encore implémenté — seul le repli SMS est actif pour l\'instant. Voir SMS_NOTES.md.</string>
+
+    <!-- Logs -->
+    <string name="logs_title">Historique des alertes</string>
+    <string name="logs_empty">Aucune alerte pour le moment.</string>
+    <string name="action_acknowledge">J\'arrive</string>
+    <string name="acknowledged_label">Confirmé</string>
+    <string name="direction_incoming">Reçue</string>
+    <string name="direction_outgoing">Envoyée</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="setting_dark_theme">Thème sombre</string>
+    <string name="setting_show_status_bar">Afficher l\'indicateur de connexion</string>
+    <string name="setting_alert_sound">Son d\'alerte</string>
+    <string name="setting_alert_vibration">Vibration d\'alerte</string>
+    <string name="action_deregister">Se désinscrire</string>
+    <string name="deregister_confirm_title">Confirmer la désinscription</string>
+    <string name="deregister_confirm_message">Vous ne recevrez plus d\'alertes sur cet appareil jusqu\'à un nouvel enregistrement.</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_confirm">Confirmer</string>
+    <string name="settings_no_profile">Aucun profil actif à afficher.</string>
+
+    <!-- Permissions -->
+    <string name="permission_rationale_title">Autorisations nécessaires</string>
+    <string name="permission_rationale_message">Cette application a besoin des autorisations SMS et notifications pour délivrer les alertes d\'urgence de façon fiable, y compris hors ligne.</string>
+    <string name="action_open_settings">Ouvrir les paramètres</string>
+</resources>

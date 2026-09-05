@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_primary">#1E3A5F</color>
+    <color name="brand_primary_dark">#12253E</color>
+    <color name="brand_accent">#E74C3C</color>
+
+    <color name="triage_low">#2ECC71</color>
+    <color name="triage_moderate">#E67E22</color>
+    <color name="triage_critical">#E74C3C</color>
+
+    <color name="status_online">#2ECC71</color>
+    <color name="status_offline">#E67E22</color>
+</resources>
