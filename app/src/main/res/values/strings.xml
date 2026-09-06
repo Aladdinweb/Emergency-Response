@@ -36,6 +36,7 @@
     <string name="label_dept_serial">Série département</string>
     <string name="send_alert_title">Envoyer une alerte</string>
     <string name="label_priority">Niveau de priorité</string>
+    <string name="label_reason">Motif</string>
     <string name="label_message">Message</string>
     <string name="hint_message">Décrivez la situation…</string>
     <string name="action_send_alert">Envoyer l\'alerte</string>
@@ -51,6 +52,11 @@
     <string name="acknowledged_label">Confirmé</string>
     <string name="direction_incoming">Reçue</string>
     <string name="direction_outgoing">Envoyée</string>
+    <string name="action_clear_all">Effacer tout</string>
+    <string name="clear_all_confirm_title">Effacer tout l\'historique ?</string>
+    <string name="clear_all_confirm_message">Cette action supprimera définitivement toutes les alertes enregistrées.</string>
+    <string name="log_deleted">Alerte supprimée.</string>
+    <string name="action_undo">Annuler</string>
 
     <!-- Settings -->
     <string name="settings_title">Paramètres</string>
@@ -79,6 +85,12 @@
     <string name="update_downloading">Téléchargement de la mise à jour…</string>
     <string name="update_ready_to_install">Mise à jour prête — appuyez pour installer.</string>
     <string name="update_channel_name">Mises à jour de l\'application</string>
+    <string name="action_deactivate_quick">Désactiver</string>
+
+    <!-- Footer -->
+    <string name="footer_copyright">© ILINE TECH BY FERAK ALADDIN. All Rights Reserved.</string>
+    <string name="footer_version">Version %1$s</string>
+    <string name="footer_combined">%1$s\n%2$s</string>
 
     <!-- Permissions -->
     <string name="permission_rationale_title">Autorisations nécessaires</string>

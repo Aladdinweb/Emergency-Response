@@ -24,6 +24,7 @@ data class AlertLogEntity(
     val deptSerial: String,
     val groupId: String,
     val priorityLevel: Int,              // TriageLevel.smsCode
+    val reason: String,                  // IncidentReason.name
     val message: String,
     val counterpartLabel: String,        // human-readable sender/recipient for the UI
     val sentAtEpochMillis: Long,

@@ -215,5 +215,14 @@
             android:layout_marginTop="16dp"
             android:visibility="gone" />
 
+        <TextView
+            android:id="@+id/textFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="10sp"
+            android:alpha="0.5"
+            android:layout_marginTop="20dp" />
+
     </LinearLayout>
 </ScrollView>

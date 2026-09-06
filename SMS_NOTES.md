@@ -1,53 +1,66 @@
-# SMS fallback slice — wiring notes
+# SMS fallback — wiring notes (updated after device testing)
 
-## AndroidManifest.xml additions
+## REDESIGNED: two messages per alert, not one
+The original single-SMS design (routing codes glued into the visible body)
+looked unprofessional in the actual Messages app during device testing.
+Now every alert sends TWO separate SMS to each fallback contact:
+
+1. **Human-readable text SMS** — what a person sees opening the thread
+   directly. No routing codes in it. Built by `SmsPayloadBuilder.buildHumanText()`.
+2. **Binary data SMS** on port `6474` (`SmsDispatcher.DATA_SMS_PORT`) —
+   invisible in any normal messaging app, delivered only to
+   `SmsDataPayloadReceiver` in this app. Carries the actual routing
+   metadata: `URG#facilitySerial#deptSerial#groupId#priorityCode#reasonOrdinal`.
+   Built by `SmsPayloadBuilder.buildRoutingPayload()`.
+
+The free-text message a sender types travels ONLY in the human-readable
+SMS — the data payload deliberately excludes it (keeps it well under the
+~140-byte single-segment limit for data SMS, which has no public multipart
+API unlike text SMS). The receiving app shows the `IncidentReason` label
+instead when logging/notifying from an SMS-sourced alert.
+
+## AndroidManifest.xml (current, replaces the old single-receiver version)
 
 ```xml
 <receiver
-    android:name=".sms.SmsIncomingReceiver"
+    android:name=".sms.SmsDataPayloadReceiver"
     android:exported="true"
     android:permission="android.permission.BROADCAST_SMS">
     <intent-filter android:priority="999">
-        <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+        <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+        <data android:scheme="sms" android:port="6474" />
     </intent-filter>
 </receiver>
 ```
 
-`exported="true"` is required here — the system, not another app component,
-delivers this broadcast, but Android still requires exported="true" for any
-receiver with an external <intent-filter> action like this one.
-`android:permission="android.permission.BROADCAST_SMS"` restricts who can
-send this broadcast to the receiver to the system itself, which is what
-actually keeps this safe despite exported="true".
+Note the different action (`DATA_SMS_RECEIVED`, not `SMS_RECEIVED`) and the
+`<data>` port filter — this is what routes binary SMS on that specific port
+to this receiver instead of the general SMS inbox.
 
-## Permissions (add to <manifest>, above <application>)
-
+## Permissions (unchanged)
 ```xml
 <uses-permission android:name="android.permission.RECEIVE_SMS" />
 <uses-permission android:name="android.permission.SEND_SMS" />
 ```
-
-Both are **dangerous** permissions requiring a runtime request
-(`ActivityCompat.requestPermissions`) before either sending or receiving
-will actually work — not wired to an Activity yet since onboarding UI
-doesn't exist in this scaffold. Google Play also requires SMS permissions
-to go through the "core app functionality" declaration form if this app
-isn't the user's default SMS handler (it isn't, and shouldn't be) — budget
-time for that review step before a Play Store submission.
+Same permissions cover both text and data SMS send/receive — no new
+permission was needed for this redesign.
 
 ## What's NOT handled yet, on purpose
-- **Delivery confirmation**: `SmsDispatcher.sendAlert()` reports how many
-  sends were handed to `SmsManager`, not confirmed-delivered. Real delivery
-  tracking needs a `PendingIntent` + a second receiver for
-  `SMS_DELIVERED_ACTION`. Worth adding once the Logs UI needs a
-  sent/delivered/failed distinction rather than just sent/not-sent.
-- **Populating `SmsFallbackContactEntity`**: nothing writes to this table
-  yet. The natural point is onboarding (a staff member registering adds
-  their own number as a fallback contact for their own facility+dept) plus
-  a directory sync so devices know about contacts they haven't personally
-  exchanged numbers with — neither exists yet since onboarding UI is a
-  later slice.
-- **Wrong-number / spoofed-sender defense**: see the doc comment in
-  `SmsIncomingReceiver` — `StaffMemberDao.findMatchingProfiles()` already
-  exists if this needs to become "ignore this alert unless MY registered
-  profile matches the serials," it's just not wired in yet.
+- **Delivery confirmation**: neither the human text SMS nor the data SMS
+  has delivery tracking — `SmsDispatcher` only knows whether `SmsManager`
+  accepted the send, not whether it reached the recipient. Needs a
+  `PendingIntent` + `SMS_DELIVERED_ACTION` receiver per message, ideally
+  tracked per-recipient in the Logs UI.
+- **Partial-failure visibility**: if the human text sends but the data SMS
+  fails (or vice versa) for a given recipient, that recipient isn't
+  counted as successfully alerted, but nothing surfaces WHICH half failed.
+  Fine for now; worth a richer per-recipient log if failures become common.
+- **Populating `SmsFallbackContactEntity`**: still only self-registers a
+  staff member's own number at onboarding. No directory sync across
+  devices — a device only knows contacts it added itself.
+- **Carrier data-SMS support**: binary/port-addressed SMS is part of the
+  GSM spec and should work on any standard carrier, but hasn't been tested
+  across multiple real carriers/networks yet. If data SMS silently fails
+  on some network while text SMS works, that's the first thing to
+  investigate (a small number of carriers restrict binary SMS on some
+  routes).

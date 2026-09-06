@@ -22,12 +22,12 @@ import kotlinx.coroutines.launch
  *  - onMessageReceived: parse the data payload and hand off to
  *    AlertIngestion, which de-dupes against the SMS fallback path (same
  *    alert may arrive via both transports), logs it, posts the notification,
- *    and triggers the DND-bypass alarm for CRITICAL alerts. SmsIncomingReceiver
+ *    and triggers the DND-bypass alarm for CRITICAL alerts. SmsDataPayloadReceiver
  *    goes through the exact same ingestion path so the two transports never
  *    diverge in behavior.
  *
- * Data payload keys expected (mirrors AlertPayload / the SMS field order):
- *   facilitySerial, deptSerial, groupId, priority (1/2/3), message, senderLabel
+ * Data payload keys expected (mirrors AlertPayload's fields):
+ *   facilitySerial, deptSerial, groupId, priority (1/2/3), reason (IncidentReason.name), message, senderLabel
  */
 class EmergencyMessagingService : FirebaseMessagingService() {
 
@@ -50,6 +50,9 @@ class EmergencyMessagingService : FirebaseMessagingService() {
         val deptSerial = data["deptSerial"] ?: return
         val groupId = data["groupId"].orEmpty()
         val priorityCode = data["priority"]?.toIntOrNull() ?: TriageLevel.MODERATE.smsCode
+        val reason = runCatching {
+            com.ilinetech.emergency.core.model.IncidentReason.valueOf(data["reason"].orEmpty())
+        }.getOrDefault(com.ilinetech.emergency.core.model.IncidentReason.AUTRE)
         val body = data["message"].orEmpty()
         val senderLabel = data["senderLabel"] ?: "Alerte"
 
@@ -61,6 +64,7 @@ class EmergencyMessagingService : FirebaseMessagingService() {
                 deptSerial = deptSerial,
                 groupId = groupId,
                 priorityCode = priorityCode,
+                reason = reason,
                 message = body,
                 senderLabel = senderLabel
             )

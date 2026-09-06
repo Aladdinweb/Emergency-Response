@@ -171,5 +171,14 @@
             android:text="@string/action_deregister"
             android:backgroundTint="@color/brand_accent" />
 
+        <TextView
+            android:id="@+id/textFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="10sp"
+            android:alpha="0.5"
+            android:layout_marginTop="24dp" />
+
     </LinearLayout>
 </ScrollView>

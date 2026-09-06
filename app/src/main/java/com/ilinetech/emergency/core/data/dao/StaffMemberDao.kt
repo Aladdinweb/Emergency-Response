@@ -18,7 +18,7 @@ interface StaffMemberDao {
     suspend fun getById(id: String): StaffMemberEntity?
 
     /**
-     * Used by SmsIncomingReceiver / EmergencyMessagingService to resolve an
+     * Used by SmsDataPayloadReceiver / EmergencyMessagingService to resolve an
      * inbound alert's dept/facility serials back to "is this alert addressed
      * to a profile registered on this device" without decrypting on the
      * receiving side — matching happens on the encrypted serial itself.

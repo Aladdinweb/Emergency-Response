@@ -61,6 +61,11 @@ class OnboardingActivity : AppCompatActivity() {
         setupDepartmentAndRoleFields()
 
         binding.buttonRegister.setOnClickListener { onRegisterClicked() }
+        binding.textFooter.text = getString(
+            R.string.footer_combined,
+            getString(R.string.footer_copyright),
+            getString(R.string.footer_version, com.ilinetech.emergency.BuildConfig.VERSION_NAME)
+        )
 
         loadInstitutionsForCurrentSelection()
     }

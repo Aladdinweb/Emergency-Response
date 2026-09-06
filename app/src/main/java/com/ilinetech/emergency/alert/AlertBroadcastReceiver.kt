@@ -15,7 +15,7 @@ import android.content.Intent
  * without hijacking the device's audio.
  *
  * Senders: EmergencyMessagingService.postNotification() and (once built)
- * SmsIncomingReceiver both send ACTION_TRIGGER_ALERT for CRITICAL alerts.
+ * SmsDataPayloadReceiver both send ACTION_TRIGGER_ALERT for CRITICAL alerts.
  * fcm.AlertAckReceiver calls AlertRingtonePlayer.stop() directly on ack
  * rather than routing back through this receiver — acknowledging is a
  * device-local action with no need for the broadcast indirection.

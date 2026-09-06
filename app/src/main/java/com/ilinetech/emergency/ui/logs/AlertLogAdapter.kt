@@ -13,6 +13,7 @@ import com.ilinetech.emergency.R
 import com.ilinetech.emergency.core.data.entities.AlertDirection
 import com.ilinetech.emergency.core.data.entities.AlertLogEntity
 import com.ilinetech.emergency.core.data.entities.AlertTransport
+import com.ilinetech.emergency.core.model.IncidentReason
 import com.ilinetech.emergency.core.model.TriageLevel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -59,7 +60,12 @@ class AlertLogAdapter(
             direction.text = context.getString(
                 if (log.direction == AlertDirection.INCOMING) R.string.direction_incoming else R.string.direction_outgoing
             )
-            message.text = log.message
+            val reasonLabel = runCatching { IncidentReason.valueOf(log.reason).label }.getOrNull()
+            message.text = if (reasonLabel != null && reasonLabel != log.message) {
+                "$reasonLabel — ${log.message}"
+            } else {
+                log.message
+            }
             timestamp.text = dateFormat.format(Date(log.sentAtEpochMillis))
             transport.text = if (log.transport == AlertTransport.SMS) "SMS" else "FCM"
 

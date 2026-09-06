@@ -139,6 +139,10 @@ class AppRepository(context: Context) {
     suspend fun acknowledge(logId: Long) =
         db.alertLogDao().markAcknowledged(logId, System.currentTimeMillis())
 
+    suspend fun deleteLog(log: AlertLogEntity) = db.alertLogDao().delete(log)
+
+    suspend fun clearAllLogs() = db.alertLogDao().clearAll()
+
     // --- Settings ---
 
     suspend fun deregisterActiveProfile() {

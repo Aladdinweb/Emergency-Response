@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
  *   - POST_NOTIFICATIONS (Android 13+): without it, neither the alert
  *     notification nor the foreground status service notification shows.
  *   - SEND_SMS / RECEIVE_SMS: the entire offline fallback path is inert
- *     without both — SEND for SmsDispatcher, RECEIVE for SmsIncomingReceiver.
+ *     without both — SEND for SmsDispatcher, RECEIVE for SmsDataPayloadReceiver.
  *
  * Call requestAll() once, early (e.g. MainActivity.onCreate), rather than
  * requesting piecemeal when each feature first needs its permission — for

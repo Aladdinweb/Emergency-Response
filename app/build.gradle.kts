@@ -21,6 +21,13 @@ android {
         // gitignored local.properties value, never a literal here.
         val serialKeyHex = project.findProperty("ILINE_SERIAL_KEY_HEX") as String? ?: ""
         buildConfigField("String", "SERIAL_KEY_HEX", "\"$serialKeyHex\"")
+
+        // See fcm/RemoteAlertPublisher.kt / CLOUD_FUNCTION_NOTES.md — empty
+        // by default so the app degrades to SMS-only until configured.
+        val cloudFunctionUrl = project.findProperty("CLOUD_FUNCTION_URL") as String? ?: ""
+        buildConfigField("String", "CLOUD_FUNCTION_URL", "\"$cloudFunctionUrl\"")
+        val cloudFunctionSecret = project.findProperty("CLOUD_FUNCTION_SHARED_SECRET") as String? ?: ""
+        buildConfigField("String", "CLOUD_FUNCTION_SHARED_SECRET", "\"$cloudFunctionSecret\"")
     }
 
     buildTypes {

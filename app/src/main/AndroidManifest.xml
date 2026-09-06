@@ -76,15 +76,25 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- SMS fallback -->
+        <!-- SMS fallback: binary data-SMS carries routing metadata, invisible
+             in normal messaging apps. See SmsPayloadBuilder / SmsDispatcher /
+             SmsDataPayloadReceiver — this replaced a plain-text-SMS receiver
+             after device testing showed the routing codes leaking into the
+             visible message body. -->
         <receiver
-            android:name=".sms.SmsIncomingReceiver"
+            android:name=".sms.SmsDataPayloadReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter android:priority="999">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+                <data android:scheme="sms" android:port="6474" />
             </intent-filter>
         </receiver>
+
+        <!-- Quick toggle from the connection-status notification -->
+        <receiver
+            android:name=".service.AppToggleReceiver"
+            android:exported="false" />
 
         <!-- In-app updates -->
         <receiver

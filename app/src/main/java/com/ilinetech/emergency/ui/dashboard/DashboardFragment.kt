@@ -8,30 +8,29 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.ilinetech.emergency.BuildConfig
 import com.ilinetech.emergency.R
 import com.ilinetech.emergency.core.data.AppRepository
 import com.ilinetech.emergency.core.data.entities.StaffMemberEntity
+import com.ilinetech.emergency.core.model.IncidentReason
 import com.ilinetech.emergency.core.model.StaffRole
 import com.ilinetech.emergency.core.model.TriageLevel
 import com.ilinetech.emergency.core.sms.AlertPayload
 import com.ilinetech.emergency.databinding.FragmentDashboardBinding
+import com.ilinetech.emergency.service.ConnectionForegroundService
 import com.ilinetech.emergency.sms.SmsDispatcher
 import kotlinx.coroutines.launch
 
 /**
  * © ILINE TECH BY FERAK ALADDIN
  *
- * Shows the active profile and lets the user send an alert to any
- * department at their OWN facility (cross-facility alerting — e.g. one
- * polyclinique alerting another — isn't in this scaffold; it would need a
- * facility picker reusing the onboarding cascade, deliberately left out to
- * keep this slice's scope bounded).
+ * Shows the active profile, the master on/off switch (also in Settings —
+ * both read/write the same Prefs.appEnabled so they stay consistent), and
+ * lets the user send an alert to any department at their OWN facility.
  *
  * Sending currently only has a real transport: SMS, via SmsDispatcher. FCM
- * publishing is a stub (see RemoteAlertPublisher) since it requires a
- * backend this project doesn't have yet — both are attempted so the UI
- * doesn't need to change once a backend exists, but only the SMS result is
- * meaningful right now.
+ * publishing calls RemoteAlertPublisher, which hits a real Cloud Function
+ * once one is deployed and configured — see CLOUD_FUNCTION_NOTES.md.
  */
 class DashboardFragment : Fragment() {
 
@@ -39,6 +38,10 @@ class DashboardFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var repository: AppRepository
     private var activeProfile: StaffMemberEntity? = null
+
+    private var targetDepartmentIndex = 0
+    private var priorityIndex = TriageLevel.MODERATE.ordinal
+    private var reasonIndex = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
@@ -50,13 +53,24 @@ class DashboardFragment : Fragment() {
         repository = AppRepository(requireContext().applicationContext)
 
         setupSpinners()
+        setupHeaderSwitch()
         loadProfile()
 
         binding.buttonSendAlert.setOnClickListener { onSendClicked() }
+        binding.textFooter.text = getString(R.string.footer_combined, getString(R.string.footer_copyright), getString(R.string.footer_version, BuildConfig.VERSION_NAME))
     }
 
-    private var targetDepartmentIndex = 0
-    private var priorityIndex = TriageLevel.MODERATE.ordinal
+    private fun setupHeaderSwitch() {
+        binding.switchAppEnabledHeader.isChecked = repository.prefs.appEnabled
+        binding.switchAppEnabledHeader.setOnCheckedChangeListener { _, checked ->
+            repository.prefs.appEnabled = checked
+            if (checked) {
+                ConnectionForegroundService.start(requireContext())
+            } else {
+                ConnectionForegroundService.stop(requireContext())
+            }
+        }
+    }
 
     private fun setupSpinners() {
         val roleAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, StaffRole.entries.map { it.label })
@@ -68,6 +82,11 @@ class DashboardFragment : Fragment() {
         binding.spinnerPriority.setAdapter(priorityAdapter)
         binding.spinnerPriority.setText(priorityAdapter.getItem(TriageLevel.MODERATE.ordinal), false)
         binding.spinnerPriority.setOnItemClickListener { _, _, position, _ -> priorityIndex = position }
+
+        val reasonAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, IncidentReason.entries.map { it.label })
+        binding.spinnerReason.setAdapter(reasonAdapter)
+        binding.spinnerReason.setText(reasonAdapter.getItem(0), false)
+        binding.spinnerReason.setOnItemClickListener { _, _, position, _ -> reasonIndex = position }
     }
 
     private fun loadProfile() {
@@ -99,6 +118,7 @@ class DashboardFragment : Fragment() {
 
         val targetRole = StaffRole.entries[targetDepartmentIndex]
         val priority = TriageLevel.entries[priorityIndex]
+        val reason = IncidentReason.entries[reasonIndex]
 
         binding.buttonSendAlert.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
@@ -109,17 +129,18 @@ class DashboardFragment : Fragment() {
                 deptSerial = targetDeptSerial,
                 groupId = profile.groupId,
                 priority = priority,
+                reason = reason,
                 message = message
             )
 
             val sentCount = SmsDispatcher.sendAlert(requireContext().applicationContext, payload)
 
-            // Attempted for forward-compatibility; currently always NotImplemented — see RemoteAlertPublisher.
             com.ilinetech.emergency.fcm.RemoteAlertPublisher.publish(
                 facilitySerial = payload.facilitySerial,
                 deptSerial = payload.deptSerial,
                 groupId = payload.groupId,
                 priorityCode = payload.priority.smsCode,
+                reason = payload.reason.name,
                 message = payload.message,
                 senderLabel = profile.fullName
             )

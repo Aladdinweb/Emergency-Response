@@ -14,6 +14,7 @@ import android.net.NetworkRequest
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.ilinetech.emergency.R
 import com.ilinetech.emergency.core.data.Prefs
 
 /**
@@ -24,15 +25,23 @@ import com.ilinetech.emergency.core.data.Prefs
  *   🟢 Online  - Connected to Emergency Network
  *   🟠 Offline - GSM SMS Fallback Active
  *
- * Platform constraint worth calling out explicitly: on Android 8+ a
- * foreground service MUST show a notification — there is no way to run one
- * invisibly. The Settings "show/hide status bar alert" toggle therefore
- * doesn't stop the notification from existing; it switches its importance
- * between DEFAULT (visible, makes a sound/appears in the status bar icon
- * area) and MIN (still present in the notification shade if pulled down,
- * but no status bar icon and silent) — see updateVisibilityFromPrefs().
- * This is the closest legal approximation of "hide" without dropping the
- * foreground guarantee that keeps connectivity monitoring alive.
+ * BUG FIX (was reported after device testing): Settings' "show/hide status
+ * bar indicator" toggle previously only changed the notification's priority
+ * (DEFAULT vs MIN) while the service kept running — MIN-priority
+ * notifications still appear in the shade, so "hide" never actually hid
+ * anything. Since a foreground service on Android 8+ cannot exist without
+ * SOME visible notification (platform rule, not something this app can
+ * override), the only correct way to "hide the indicator" is to stop being
+ * a foreground service at all. That means: when the toggle is off, this
+ * service does not run, and connectivity is simply not monitored — that
+ * trade-off is now explicit rather than silently fake-succeeding.
+ *
+ * Also carries a quick "Désactiver" action (see AppToggleReceiver) so the
+ * whole app can be paused without opening it — this action only appears
+ * while the notification is visible, i.e. while the app is active; once
+ * paused there is deliberately no notification left to re-activate FROM
+ * (that would defeat "hide the indicator" above) — re-enabling requires
+ * opening the app (Dashboard header switch or Settings).
  */
 class ConnectionForegroundService : Service() {
 
@@ -59,31 +68,35 @@ class ConnectionForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         prefs = Prefs(this)
+
+        // Guard here too, not just at call sites: anything that calls
+        // start() (EmergencyApp on launch, Settings, the toggle receiver)
+        // should never leave a notification showing when the preference
+        // says not to — checking here as well as at call sites means one
+        // missed call site can't reintroduce the original bug.
+        if (!prefs.showStatusBarIndicator || !prefs.appEnabled) {
+            stopSelf()
+            return
+        }
+
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         createChannelIfNeeded()
         isOnline = hasAnyValidatedNetwork()
         startForeground(NOTIFICATION_ID, buildNotification())
         connectivityManager.registerNetworkCallback(NetworkRequest.Builder().build(), networkCallback)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // START_STICKY: this is a monitoring service, not tied to one bound
-        // component's lifecycle — the OS should restart it if it's killed
-        // under memory pressure, since "no connectivity indicator" during
-        // an actual emergency is the failure mode we're guarding against.
-        return START_STICKY
-    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
         super.onDestroy()
-        runCatching { connectivityManager.unregisterNetworkCallback(networkCallback) }
+        if (::connectivityManager.isInitialized) {
+            runCatching { connectivityManager.unregisterNetworkCallback(networkCallback) }
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    /** Call after the user flips the Settings toggle to refresh the notification immediately. */
-    fun updateVisibilityFromPrefs() = updateNotification()
 
     private fun hasAnyValidatedNetwork(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
@@ -98,20 +111,25 @@ class ConnectionForegroundService : Service() {
 
     private fun buildNotification(): Notification {
         val (icon, title) = if (isOnline) {
-            "🟢" to "Online - Connecté au réseau d'urgence"
+            "\uD83D\uDFE2" to "Online - Connecté au réseau d'urgence"
         } else {
-            "🟠" to "Offline - Repli SMS/GSM actif"
+            "\uD83D\uDFE0" to "Offline - Repli SMS/GSM actif"
         }
 
-        val visible = prefs.showStatusBarIndicator
-        val importance = if (visible) NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_MIN
+        val toggleIntent = Intent(this, AppToggleReceiver::class.java).apply {
+            action = AppToggleReceiver.ACTION_TOGGLE_APP_ENABLED
+        }
+        val togglePendingIntent = PendingIntent.getBroadcast(
+            this, 0, toggleIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.presence_online) // TODO: replace with app icon asset
             .setContentTitle("$icon $title")
-            .setPriority(importance)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true)
             .setSilent(true) // this is a status indicator, not an alert — never make sound itself
+            .addAction(0, getString(R.string.action_deactivate_quick), togglePendingIntent)
             .build()
     }
 
@@ -132,6 +150,8 @@ class ConnectionForegroundService : Service() {
         private const val NOTIFICATION_ID = 1001
 
         fun start(context: Context) {
+            val prefs = Prefs(context)
+            if (!prefs.showStatusBarIndicator || !prefs.appEnabled) return // see onCreate's guard for why
             val intent = Intent(context, ConnectionForegroundService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)

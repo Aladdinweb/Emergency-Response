@@ -59,12 +59,17 @@ class SettingsFragment : Fragment() {
 
         binding.switchShowStatusBar.setOnCheckedChangeListener { _, checked ->
             prefs.showStatusBarIndicator = checked
-            // The service reads this pref each time it rebuilds the notification;
-            // nudge it now via a capabilities/connectivity no-op isn't available
-            // externally, so we just restart it — cheap, and immediate rather
-            // than waiting for the next connectivity change to pick it up.
+            // BUG FIX: this used to unconditionally stop() then start() the
+            // service, which restarts it (and its notification) regardless
+            // of what was just chosen — that's why "off" never actually hid
+            // anything. Only restart when turning ON; turning OFF must stop
+            // and NOT restart, since a foreground service cannot exist
+            // without showing a notification (Android 8+ platform rule) —
+            // "hide the indicator" can only mean "the service isn't running."
             ConnectionForegroundService.stop(requireContext())
-            ConnectionForegroundService.start(requireContext())
+            if (checked && prefs.appEnabled) {
+                ConnectionForegroundService.start(requireContext())
+            }
         }
 
         binding.switchAlertSound.setOnCheckedChangeListener { _, checked ->
@@ -77,6 +82,11 @@ class SettingsFragment : Fragment() {
 
         binding.buttonDeregister.setOnClickListener { confirmDeregister() }
         binding.buttonCheckUpdates.setOnClickListener { onCheckUpdatesClicked() }
+        binding.textFooter.text = getString(
+            R.string.footer_combined,
+            getString(R.string.footer_copyright),
+            getString(R.string.footer_version, com.ilinetech.emergency.BuildConfig.VERSION_NAME)
+        )
 
         loadActiveProfileLabel()
     }

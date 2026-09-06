@@ -1,6 +1,7 @@
 package com.ilinetech.emergency.core.data.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.ilinetech.emergency.core.data.entities.AlertLogEntity
@@ -17,6 +18,12 @@ interface AlertLogDao {
 
     @Insert
     suspend fun insert(log: AlertLogEntity): Long
+
+    @Delete
+    suspend fun delete(log: AlertLogEntity)
+
+    @Query("DELETE FROM alert_logs")
+    suspend fun clearAll()
 
     @Query("UPDATE alert_logs SET acknowledged = 1, acknowledgedAtEpochMillis = :atEpochMillis WHERE id = :id")
     suspend fun markAcknowledged(id: Long, atEpochMillis: Long)

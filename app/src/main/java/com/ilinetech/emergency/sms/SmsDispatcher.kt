@@ -1,45 +1,45 @@
 package com.ilinetech.emergency.sms
 
 import android.content.Context
+import android.os.Build
 import android.telephony.SmsManager
 import com.ilinetech.emergency.core.data.AppDatabase
 import com.ilinetech.emergency.core.data.entities.AlertDirection
 import com.ilinetech.emergency.core.data.entities.AlertLogEntity
 import com.ilinetech.emergency.core.data.entities.AlertTransport
-import com.ilinetech.emergency.core.model.TriageLevel
 import com.ilinetech.emergency.core.sms.AlertPayload
 import com.ilinetech.emergency.core.sms.SmsPayloadBuilder
+import java.nio.charset.StandardCharsets
 
 /**
  * © ILINE TECH BY FERAK ALADDIN
  *
- * Sends an alert over the GSM/SMS fallback path to every contact registered
- * for the target (facilitySerial, deptSerial) — see SmsFallbackContactEntity
- * for why this needs a local phone-number directory rather than a topic.
- *
- * This is the sending device's counterpart to SmsIncomingReceiver on the
- * other end. Requires android.permission.SEND_SMS (runtime-requested,
- * dangerous permission group) — caller must have already obtained it.
+ * Sends TWO SMS per recipient per alert (see SmsPayloadBuilder's class doc
+ * for why): a normal human-readable text message, and a binary data SMS on
+ * DATA_SMS_PORT carrying the routing payload that SmsDataPayloadReceiver
+ * picks up on the other end. Requires android.permission.SEND_SMS.
  */
 object SmsDispatcher {
 
+    /** Arbitrary private port for this app's data SMS — must match SmsDataPayloadReceiver's manifest filter. */
+    const val DATA_SMS_PORT: Short = 6474
+
     /**
-     * Sends [payload] to every registered fallback contact for its
-     * (facilitySerial, deptSerial) target. Returns the number of recipients
-     * the SMS was handed off to SmsManager for — does not confirm carrier
-     * delivery (that requires a separate PendingIntent-based delivery
-     * report, worth adding once the Logs UI needs delivery status).
-     *
-     * Also logs a single OUTGOING entry (not one per recipient) since from
-     * the sender's perspective this is one alert, not N separate ones.
+     * Returns the number of recipients both messages were successfully
+     * handed off to SmsManager for (a recipient only counts if BOTH sends
+     * succeeded — a routing payload with no human-readable counterpart, or
+     * vice versa, isn't a coherent delivered alert).
      */
     suspend fun sendAlert(context: Context, payload: AlertPayload): Int {
         val contactDao = AppDatabase.getInstance(context).smsFallbackContactDao()
         val recipients = contactDao.getForTarget(payload.facilitySerial, payload.deptSerial)
         if (recipients.isEmpty()) return 0
 
-        val body = SmsPayloadBuilder.build(payload)
-        val smsManager = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val humanText = SmsPayloadBuilder.buildHumanText(payload)
+        val routingPayload = SmsPayloadBuilder.buildRoutingPayload(payload)
+        val routingBytes = routingPayload.toByteArray(StandardCharsets.UTF_8)
+
+        val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             context.getSystemService(SmsManager::class.java)
         } else {
             @Suppress("DEPRECATION")
@@ -48,16 +48,27 @@ object SmsDispatcher {
 
         var sentCount = 0
         for (contact in recipients) {
-            val parts = smsManager.divideMessage(body)
-            runCatching {
+            val humanSent = runCatching {
+                val parts = smsManager.divideMessage(humanText)
                 if (parts.size > 1) {
                     smsManager.sendMultipartTextMessage(contact.phoneNumber, null, parts, null, null)
                 } else {
-                    smsManager.sendTextMessage(contact.phoneNumber, null, body, null, null)
+                    smsManager.sendTextMessage(contact.phoneNumber, null, humanText, null, null)
                 }
-            }.onSuccess { sentCount++ }
-            // A failed send to one contact shouldn't abort sending to the rest —
-            // log at the call site if per-recipient failure visibility is needed.
+            }.isSuccess
+
+            val routingSent = runCatching {
+                smsManager.sendDataMessage(contact.phoneNumber, null, DATA_SMS_PORT, routingBytes, null, null)
+            }.isSuccess
+
+            if (humanSent && routingSent) sentCount++
+            // Partial failure (one send succeeded, one didn't) isn't rolled
+            // back — there's no atomic "send both or neither" primitive for
+            // SMS. A human-only send without routing means the recipient
+            // sees a readable alert but it won't trigger the receiving
+            // app's notification/alarm; logged at the call site's summary
+            // level only, not per-recipient — see SMS_NOTES.md for the
+            // known-gaps note on per-recipient delivery visibility.
         }
 
         AppDatabase.getInstance(context).alertLogDao().insert(
@@ -68,6 +79,7 @@ object SmsDispatcher {
                 deptSerial = payload.deptSerial,
                 groupId = payload.groupId,
                 priorityLevel = payload.priority.smsCode,
+                reason = payload.reason.name,
                 message = payload.message,
                 counterpartLabel = "$sentCount destinataire(s)",
                 sentAtEpochMillis = System.currentTimeMillis()

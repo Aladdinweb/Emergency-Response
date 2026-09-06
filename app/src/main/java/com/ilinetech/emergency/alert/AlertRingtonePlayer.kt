@@ -21,9 +21,14 @@ import android.os.VibratorManager
  * (some OEM DND policies do; vibration is a reasonable fallback).
  *
  * Lifecycle: call start() when a CRITICAL alert arrives, stop() when the
- * user taps "J'arrive" (see fcm.AlertAckReceiver) or after MAX_DURATION_MS
- * elapses, whichever comes first — an alarm that never stops itself is a
- * support nightmare if an ack is ever missed/dropped.
+ * user taps "J'arrive" (see fcm.AlertAckReceiver). Per explicit product
+ * decision, there is NO automatic timeout — the alarm loops indefinitely
+ * until acknowledged, even if that means it runs for a long time on a
+ * missed/ignored alert. (An earlier version auto-stopped after 30s; that
+ * was found to defeat the entire point of a "must ring until someone
+ * intervenes" emergency alarm and has been removed.) If a safety timeout
+ * is wanted later, it should escalate — e.g. notify a supervisor role —
+ * rather than silently going quiet, which is worse than either extreme.
  *
  * Singleton object: at most one alert alarm plays at a time by design —
  * a second CRITICAL alert arriving mid-alarm restarts the sound rather than
@@ -31,12 +36,8 @@ import android.os.VibratorManager
  */
 object AlertRingtonePlayer {
 
-    private const val MAX_DURATION_MS = 30_000L
-
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
-    private var stopHandler: android.os.Handler? = null
-    private var stopRunnable: Runnable? = null
 
     @Synchronized
     fun start(context: Context) {
@@ -67,18 +68,10 @@ object AlertRingtonePlayer {
         }
 
         startVibration(appContext)
-
-        stopHandler = android.os.Handler(android.os.Looper.getMainLooper())
-        stopRunnable = Runnable { stop(appContext) }
-        stopHandler?.postDelayed(stopRunnable!!, MAX_DURATION_MS)
     }
 
     @Synchronized
     fun stop(context: Context) {
-        stopRunnable?.let { stopHandler?.removeCallbacks(it) }
-        stopHandler = null
-        stopRunnable = null
-
         mediaPlayer?.let {
             runCatching { it.stop() }
             it.release()

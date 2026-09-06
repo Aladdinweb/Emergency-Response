@@ -11,6 +11,7 @@ import com.ilinetech.emergency.core.data.AppDatabase
 import com.ilinetech.emergency.core.data.entities.AlertDirection
 import com.ilinetech.emergency.core.data.entities.AlertLogEntity
 import com.ilinetech.emergency.core.data.entities.AlertTransport
+import com.ilinetech.emergency.core.model.IncidentReason
 import com.ilinetech.emergency.core.model.TriageLevel
 import com.ilinetech.emergency.fcm.AlertAckReceiver
 import java.util.concurrent.TimeUnit
@@ -19,10 +20,15 @@ import java.util.concurrent.TimeUnit
  * © ILINE TECH BY FERAK ALADDIN
  *
  * Single entry point for "an alert arrived, regardless of transport."
- * EmergencyMessagingService (FCM) and SmsIncomingReceiver (GSM fallback)
+ * EmergencyMessagingService (FCM) and SmsDataPayloadReceiver (GSM fallback)
  * both call [ingest] instead of duplicating de-dupe/log/notify logic — this
  * is also what makes the de-dupe window actually work: whichever transport
  * arrives second sees the first one's log row and backs off.
+ *
+ * [message] may be blank — the SMS data-payload path deliberately doesn't
+ * transmit free text (see SmsPayloadBuilder's class doc); when blank, the
+ * IncidentReason's label is shown instead so the notification/log always
+ * has something meaningful to display.
  */
 object AlertIngestion {
 
@@ -30,7 +36,7 @@ object AlertIngestion {
     private val DEDUPE_WINDOW_MILLIS = TimeUnit.MINUTES.toMillis(2)
 
     /** Returns the inserted log row id, or null if this was a duplicate of an already-logged alert
-     *  OR if the app is currently disabled via the Settings master switch — see Prefs.appEnabled. */
+     *  OR if the app is currently disabled via the Settings/Dashboard master switch — see Prefs.appEnabled. */
     suspend fun ingest(
         context: Context,
         transport: AlertTransport,
@@ -38,16 +44,19 @@ object AlertIngestion {
         deptSerial: String,
         groupId: String,
         priorityCode: Int,
+        reason: IncidentReason,
         message: String,
         senderLabel: String
     ): Long? {
         if (!com.ilinetech.emergency.core.data.Prefs(context).appEnabled) return null
 
+        val displayMessage = message.ifBlank { reason.label }
+
         val dao = AppDatabase.getInstance(context).alertLogDao()
         val now = System.currentTimeMillis()
 
         val duplicates = dao.countRecentDuplicates(
-            facilitySerial, deptSerial, groupId, message,
+            facilitySerial, deptSerial, groupId, displayMessage,
             windowStart = now - DEDUPE_WINDOW_MILLIS, windowEnd = now
         )
         if (duplicates > 0) return null
@@ -60,7 +69,8 @@ object AlertIngestion {
                 deptSerial = deptSerial,
                 groupId = groupId,
                 priorityLevel = priorityCode,
-                message = message,
+                reason = reason.name,
+                message = displayMessage,
                 counterpartLabel = senderLabel,
                 sentAtEpochMillis = now
             )
@@ -69,7 +79,7 @@ object AlertIngestion {
         val priority = runCatching { TriageLevel.fromSmsCode(priorityCode) }
             .getOrDefault(TriageLevel.MODERATE)
 
-        postNotification(context, logId, senderLabel, message, priority)
+        postNotification(context, logId, senderLabel, displayMessage, priority)
 
         if (priority == TriageLevel.CRITICAL) {
             AlertBroadcastReceiver.broadcastTrigger(context)
@@ -106,11 +116,12 @@ object AlertIngestion {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val (emoji, colorInt) = when (priority) {
-            TriageLevel.CRITICAL -> "\uD83D\uDD34" to android.graphics.Color.parseColor(priority.colorHex)
-            TriageLevel.MODERATE -> "\uD83D\uDFE0" to android.graphics.Color.parseColor(priority.colorHex)
-            TriageLevel.LOW -> "\uD83D\uDFE2" to android.graphics.Color.parseColor(priority.colorHex)
+        val emoji = when (priority) {
+            TriageLevel.CRITICAL -> "\uD83D\uDD34"
+            TriageLevel.MODERATE -> "\uD83D\uDFE0"
+            TriageLevel.LOW -> "\uD83D\uDFE2"
         }
+        val colorInt = android.graphics.Color.parseColor(priority.colorHex)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_alert) // TODO: replace with app icon asset

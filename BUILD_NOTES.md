@@ -21,6 +21,8 @@ Create `local.properties` in the project root (already gitignored):
 ```
 sdk.dir=/path/to/your/Android/sdk
 ILINE_SERIAL_KEY_HEX=<paste the key from step 1>
+CLOUD_FUNCTION_URL=<optional — see CLOUD_FUNCTION_NOTES.md; leave blank to stay SMS-only>
+CLOUD_FUNCTION_SHARED_SECRET=<optional — must match the deployed function's secret>
 ```
 
 Then, in Firebase Console → your project → Android app → download

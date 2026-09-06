@@ -1,36 +1,33 @@
 package com.ilinetech.emergency.fcm
 
+import com.ilinetech.emergency.BuildConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
+
 /**
  * © ILINE TECH BY FERAK ALADDIN
  *
- * DELIBERATE STUB — read before wiring a call site to this.
+ * Calls a Cloud Function that publishes to the FCM topic on our behalf —
+ * see /functions/index.js for the deployable server code and
+ * CLOUD_FUNCTION_NOTES.md for deployment steps. The client SDK still
+ * cannot publish to FCM topics directly (a genuine platform limitation,
+ * not something this app chooses); this is the trusted-server side of
+ * that requirement.
  *
- * The FCM client SDK (what runs on the phone) can only SUBSCRIBE to and
- * RECEIVE topic messages — see FcmTopicManager. It cannot PUBLISH to a
- * topic. Publishing requires a trusted server holding either:
- *   (a) a Firebase Admin SDK service-account credential, or
- *   (b) an OAuth2 access token for the FCM HTTP v1 API,
- * neither of which may ever be embedded in an Android app — either one
- * would let anyone who decompiles the APK send arbitrary push notifications
- * to every device subscribed to any topic.
- *
- * This app currently has no backend. The SMS fallback path (SmsDispatcher)
- * is fully functional without one; the FCM "online" path described in the
- * spec needs one of:
- *   - A small Cloud Function (Node/Python) exposed as an HTTPS callable
- *     function, invoked from this class via a Retrofit/OkHttp call, which
- *     then uses the Admin SDK server-side to publish to the topic.
- *   - Writing the alert to Firestore/Realtime Database instead, with a
- *     Cloud Function trigger that publishes to FCM on document creation.
- *
- * Until one of those exists, [publish] intentionally does nothing but
- * report failure — this is safer than silently pretending the alert went
- * out over a channel that doesn't actually exist yet.
+ * Reads the endpoint URL and shared secret from BuildConfig, populated
+ * from Gradle properties the same way SERIAL_KEY_HEX is — see build.gradle.kts.
+ * Until CLOUD_FUNCTION_URL is configured, [publish] returns NotConfigured
+ * rather than silently failing or throwing, so the Dashboard's send flow
+ * degrades cleanly to SMS-only.
  */
 object RemoteAlertPublisher {
 
     sealed class PublishResult {
-        object NotImplemented : PublishResult()
+        object NotConfigured : PublishResult()
         data class Success(val messageId: String) : PublishResult()
         data class Failure(val reason: String) : PublishResult()
     }
@@ -40,13 +37,47 @@ object RemoteAlertPublisher {
         deptSerial: String,
         groupId: String,
         priorityCode: Int,
+        reason: String,
         message: String,
         senderLabel: String
-    ): PublishResult {
-        // TODO: replace with a call to your backend endpoint once it exists, e.g.:
-        //   val response = backendApi.publishAlert(PublishAlertRequest(...))
-        //   return if (response.isSuccessful) PublishResult.Success(response.body()!!.messageId)
-        //          else PublishResult.Failure(response.errorBody()?.string() ?: "unknown error")
-        return PublishResult.NotImplemented
+    ): PublishResult = withContext(Dispatchers.IO) {
+        val url = BuildConfig.CLOUD_FUNCTION_URL
+        if (url.isBlank()) return@withContext PublishResult.NotConfigured
+
+        runCatching {
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 10_000
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            if (BuildConfig.CLOUD_FUNCTION_SHARED_SECRET.isNotBlank()) {
+                connection.setRequestProperty("X-Shared-Secret", BuildConfig.CLOUD_FUNCTION_SHARED_SECRET)
+            }
+
+            val body = JSONObject().apply {
+                put("facilitySerial", facilitySerial)
+                put("deptSerial", deptSerial)
+                put("groupId", groupId)
+                put("priority", priorityCode)
+                put("reason", reason)
+                put("message", message)
+                put("senderLabel", senderLabel)
+            }
+
+            connection.outputStream.use { it.write(body.toString().toByteArray(StandardCharsets.UTF_8)) }
+
+            val responseCode = connection.responseCode
+            val responseText = (if (responseCode in 200..299) connection.inputStream else connection.errorStream)
+                ?.bufferedReader()?.use { it.readText() } ?: ""
+            connection.disconnect()
+
+            if (responseCode in 200..299) {
+                val json = runCatching { JSONObject(responseText) }.getOrNull()
+                PublishResult.Success(json?.optString("messageId", "") ?: "")
+            } else {
+                PublishResult.Failure("HTTP $responseCode: $responseText")
+            }
+        }.getOrElse { PublishResult.Failure(it.message ?: "unknown error") }
     }
 }
