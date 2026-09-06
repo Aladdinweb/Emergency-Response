@@ -47,6 +47,29 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_ONBOARDING_COMPLETE, false)
         set(value) = sp.edit().putBoolean(KEY_ONBOARDING_COMPLETE, value).apply()
 
+    /**
+     * Master kill switch: when false, the app stops reacting to alerts
+     * entirely — no notification, no DND-bypass alarm, no foreground status
+     * indicator — without deregistering the profile or losing any data.
+     * Toggle back on and everything resumes exactly where it left off.
+     * This is the "avoid inconvenience" pause button, distinct from
+     * deregistering (which wipes the profile and unsubscribes from FCM).
+     */
+    var appEnabled: Boolean
+        get() = sp.getBoolean(KEY_APP_ENABLED, true)
+        set(value) = sp.edit().putBoolean(KEY_APP_ENABLED, value).apply()
+
+    var lastUpdateCheckEpochMillis: Long
+        get() = sp.getLong(KEY_LAST_UPDATE_CHECK, 0L)
+        set(value) = sp.edit().putLong(KEY_LAST_UPDATE_CHECK, value).apply()
+
+    /** DownloadManager id for an in-progress update download, so the completion
+     *  receiver can confirm a DOWNLOAD_COMPLETE broadcast is actually ours
+     *  before triggering a package install from it. -1L = none pending. */
+    var pendingUpdateDownloadId: Long
+        get() = sp.getLong(KEY_PENDING_UPDATE_DOWNLOAD_ID, -1L)
+        set(value) = sp.edit().putLong(KEY_PENDING_UPDATE_DOWNLOAD_ID, value).apply()
+
     fun clearSession() {
         sp.edit()
             .remove(KEY_ACTIVE_STAFF_ID)
@@ -62,5 +85,8 @@ class Prefs(context: Context) {
         private const val KEY_ALERT_SOUND = "alert_sound_enabled"
         private const val KEY_ALERT_VIBRATION = "alert_vibration_enabled"
         private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
+        private const val KEY_APP_ENABLED = "app_enabled"
+        private const val KEY_LAST_UPDATE_CHECK = "last_update_check"
+        private const val KEY_PENDING_UPDATE_DOWNLOAD_ID = "pending_update_download_id"
     }
 }

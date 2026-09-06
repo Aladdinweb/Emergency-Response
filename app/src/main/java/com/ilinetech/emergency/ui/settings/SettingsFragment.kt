@@ -35,10 +35,20 @@ class SettingsFragment : Fragment() {
         repository = AppRepository(requireContext().applicationContext)
         val prefs = repository.prefs
 
+        binding.switchAppEnabled.isChecked = prefs.appEnabled
         binding.switchDarkTheme.isChecked = prefs.isDarkTheme
         binding.switchShowStatusBar.isChecked = prefs.showStatusBarIndicator
         binding.switchAlertSound.isChecked = prefs.alertSoundEnabled
         binding.switchAlertVibration.isChecked = prefs.alertVibrationEnabled
+
+        binding.switchAppEnabled.setOnCheckedChangeListener { _, checked ->
+            prefs.appEnabled = checked
+            if (checked) {
+                ConnectionForegroundService.start(requireContext())
+            } else {
+                ConnectionForegroundService.stop(requireContext())
+            }
+        }
 
         binding.switchDarkTheme.setOnCheckedChangeListener { _, checked ->
             prefs.isDarkTheme = checked
@@ -66,8 +76,37 @@ class SettingsFragment : Fragment() {
         }
 
         binding.buttonDeregister.setOnClickListener { confirmDeregister() }
+        binding.buttonCheckUpdates.setOnClickListener { onCheckUpdatesClicked() }
 
         loadActiveProfileLabel()
+    }
+
+    private fun onCheckUpdatesClicked() {
+        binding.textUpdateStatus.text = getString(R.string.update_checking)
+        binding.buttonCheckUpdates.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val info = com.ilinetech.emergency.core.update.UpdateChecker.checkForUpdate(requireContext().applicationContext)
+            binding.buttonCheckUpdates.isEnabled = true
+            if (info == null) {
+                binding.textUpdateStatus.text = getString(R.string.update_up_to_date)
+                return@launch
+            }
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.update_available_title)
+                .setMessage(
+                    getString(
+                        R.string.update_available_message,
+                        info.versionName,
+                        com.ilinetech.emergency.BuildConfig.VERSION_NAME
+                    ) + if (info.notes.isNotBlank()) "\n\n${info.notes}" else ""
+                )
+                .setNegativeButton(R.string.action_later, null)
+                .setPositiveButton(R.string.action_download_update) { _, _ ->
+                    binding.textUpdateStatus.text = getString(R.string.update_downloading)
+                    com.ilinetech.emergency.core.update.UpdateDownloader.startDownload(requireContext().applicationContext, info)
+                }
+                .show()
+        }
     }
 
     private fun loadActiveProfileLabel() {

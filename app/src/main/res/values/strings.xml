@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ILINE Emergency Response</string>
+    <string name="app_name">Emergency Response</string>
 
     <!-- Onboarding -->
     <string name="onboarding_title">Enregistrement</string>
@@ -54,6 +54,8 @@
 
     <!-- Settings -->
     <string name="settings_title">Paramètres</string>
+    <string name="setting_app_enabled">Application activée</string>
+    <string name="setting_app_enabled_hint">Désactivez temporairement pour ne recevoir aucune alerte, sans supprimer votre profil.</string>
     <string name="setting_dark_theme">Thème sombre</string>
     <string name="setting_show_status_bar">Afficher l\'indicateur de connexion</string>
     <string name="setting_alert_sound">Son d\'alerte</string>
@@ -64,6 +66,19 @@
     <string name="action_cancel">Annuler</string>
     <string name="action_confirm">Confirmer</string>
     <string name="settings_no_profile">Aucun profil actif à afficher.</string>
+
+    <!-- Updates -->
+    <string name="setting_check_updates">Vérifier les mises à jour</string>
+    <string name="update_checking">Recherche de mise à jour…</string>
+    <string name="update_up_to_date">Vous utilisez déjà la dernière version.</string>
+    <string name="update_check_failed">Impossible de vérifier les mises à jour pour le moment.</string>
+    <string name="update_available_title">Mise à jour disponible</string>
+    <string name="update_available_message">Version %1$s disponible (vous avez la %2$s).</string>
+    <string name="action_download_update">Télécharger</string>
+    <string name="action_later">Plus tard</string>
+    <string name="update_downloading">Téléchargement de la mise à jour…</string>
+    <string name="update_ready_to_install">Mise à jour prête — appuyez pour installer.</string>
+    <string name="update_channel_name">Mises à jour de l\'application</string>
 
     <!-- Permissions -->
     <string name="permission_rationale_title">Autorisations nécessaires</string>

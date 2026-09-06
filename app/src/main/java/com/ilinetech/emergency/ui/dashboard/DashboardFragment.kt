@@ -55,16 +55,19 @@ class DashboardFragment : Fragment() {
         binding.buttonSendAlert.setOnClickListener { onSendClicked() }
     }
 
+    private var targetDepartmentIndex = 0
+    private var priorityIndex = TriageLevel.MODERATE.ordinal
+
     private fun setupSpinners() {
-        binding.spinnerTargetDepartment.adapter = ArrayAdapter(
-            requireContext(), android.R.layout.simple_spinner_dropdown_item,
-            StaffRole.entries.map { it.label }
-        )
-        binding.spinnerPriority.adapter = ArrayAdapter(
-            requireContext(), android.R.layout.simple_spinner_dropdown_item,
-            TriageLevel.entries.map { it.label }
-        )
-        binding.spinnerPriority.setSelection(TriageLevel.MODERATE.ordinal)
+        val roleAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, StaffRole.entries.map { it.label })
+        binding.spinnerTargetDepartment.setAdapter(roleAdapter)
+        binding.spinnerTargetDepartment.setText(roleAdapter.getItem(0), false)
+        binding.spinnerTargetDepartment.setOnItemClickListener { _, _, position, _ -> targetDepartmentIndex = position }
+
+        val priorityAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, TriageLevel.entries.map { it.label })
+        binding.spinnerPriority.setAdapter(priorityAdapter)
+        binding.spinnerPriority.setText(priorityAdapter.getItem(TriageLevel.MODERATE.ordinal), false)
+        binding.spinnerPriority.setOnItemClickListener { _, _, position, _ -> priorityIndex = position }
     }
 
     private fun loadProfile() {
@@ -94,8 +97,8 @@ class DashboardFragment : Fragment() {
             return
         }
 
-        val targetRole = StaffRole.entries[binding.spinnerTargetDepartment.selectedItemPosition]
-        val priority = TriageLevel.entries[binding.spinnerPriority.selectedItemPosition]
+        val targetRole = StaffRole.entries[targetDepartmentIndex]
+        val priority = TriageLevel.entries[priorityIndex]
 
         binding.buttonSendAlert.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {

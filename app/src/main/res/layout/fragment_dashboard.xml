@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -14,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/dashboard_title"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
@@ -24,28 +25,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#14000000"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:background="@drawable/bg_card"
+            android:padding="18dp"
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_current_profile"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:textSize="12sp"
+                android:letterSpacing="0.08"
+                android:alpha="0.6"
+                android:layout_marginBottom="6dp" />
 
             <TextView
                 android:id="@+id/textProfileName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/textProfileRole"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:alpha="0.8"
+                android:alpha="0.75"
                 android:layout_marginTop="2dp" />
 
             <TextView
@@ -54,14 +59,16 @@
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
                 android:fontFamily="monospace"
-                android:layout_marginTop="8dp" />
+                android:alpha="0.7"
+                android:layout_marginTop="10dp" />
 
             <TextView
                 android:id="@+id/textDeptSerial"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
-                android:fontFamily="monospace" />
+                android:fontFamily="monospace"
+                android:alpha="0.7" />
 
         </LinearLayout>
 
@@ -74,50 +81,80 @@
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
 
-        <TextView style="@style/OnboardingLabel" android:text="@string/label_department" />
-        <Spinner
-            android:id="@+id/spinnerTargetDepartment"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp">
 
-        <TextView style="@style/OnboardingLabel" android:text="@string/label_priority" />
-        <Spinner
-            android:id="@+id/spinnerPriority"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/label_department"
+                android:layout_marginBottom="12dp">
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerTargetDepartment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:editable="false" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView style="@style/OnboardingLabel" android:text="@string/label_message" />
-        <EditText
-            android:id="@+id/editMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_message"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:gravity="top"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/label_priority"
+                android:layout_marginBottom="12dp">
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerPriority"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:editable="false" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
-            android:id="@+id/buttonSendAlert"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/action_send_alert" />
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/label_message"
+                android:layout_marginBottom="16dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:gravity="top" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:id="@+id/textSendResult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textSize="13sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonSendAlert"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:textSize="16sp"
+                android:textAllCaps="false"
+                app:cornerRadius="28dp"
+                android:backgroundTint="@color/brand_accent"
+                android:text="@string/action_send_alert" />
+
+            <TextView
+                android:id="@+id/textSendResult"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/fcm_publish_not_implemented"
             android:textSize="11sp"
-            android:alpha="0.6"
+            android:alpha="0.55"
             android:layout_marginTop="16dp" />
 
     </LinearLayout>

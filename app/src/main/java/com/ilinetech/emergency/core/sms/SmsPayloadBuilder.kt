@@ -5,22 +5,23 @@ import com.ilinetech.emergency.core.model.TriageLevel
 /**
  * © ILINE TECH BY FERAK ALADDIN
  *
- * Format (matches the online/FCM path 1:1 so both channels carry the same
- * information and the receiver UI doesn't need to branch on transport):
+ * An SMS this app sends has TWO parts in the same message body:
  *
- *   URGENCY#ENCRYPTED_FACILITY_SERIAL#DEPT_SERIAL#GROUP_ID#PRIORITY_LEVEL#MESSAGE
+ *   1. A human-readable header — what someone sees if they open the raw
+ *      SMS thread directly (e.g. on a phone that doesn't have this app,
+ *      or before opening the notification). Priority-coded with an emoji,
+ *      readable at a glance.
+ *   2. A machine-parseable payload line, unchanged in shape from before:
+ *        URG#ENCRYPTED_FACILITY_SERIAL#DEPT_SERIAL#GROUP_ID#PRIORITY_LEVEL#MESSAGE
+ *      SmsIncomingReceiver finds this line via its "URG#" prefix regardless
+ *      of what human-readable text precedes it, so the two can never drift
+ *      out of sync — the header is generated FROM the same payload fields,
+ *      never entered separately.
  *
- * - URGENCY               literal tag, currently always "URG" — reserved so
- *                          future non-emergency SMS types can share the
- *                          receiver's parsing path without ambiguity.
- * - ENCRYPTED_FACILITY_SERIAL  from SerialEncoder — identifies wilaya/type/
- *                          institution/sub-branch.
- * - DEPT_SERIAL            from SerialEncoder — identifies the target
- *                          role/department within that sub-branch.
- * - GROUP_ID               shift/group identifier (plain string, no PII).
- * - PRIORITY_LEVEL         TriageLevel.smsCode (1/2/3).
- * - MESSAGE                free text; '#' is stripped/escaped since it's the
- *                          field delimiter.
+ * This fixes what raw parsing-format SMS bodies look like when a person
+ * actually opens the thread (which happens in practice — see the very
+ * first test send) — without touching the wire format SmsIncomingReceiver
+ * already depends on.
  */
 data class AlertPayload(
     val facilitySerial: String,
@@ -40,7 +41,13 @@ object SmsPayloadBuilder {
     private fun sanitizeMessage(message: String): String =
         message.replace(DELIMITER, "-").trim()
 
-    fun build(payload: AlertPayload): String {
+    private fun priorityEmoji(priority: TriageLevel): String = when (priority) {
+        TriageLevel.CRITICAL -> "\uD83D\uDD34" // 🔴
+        TriageLevel.MODERATE -> "\uD83D\uDFE0" // 🟠
+        TriageLevel.LOW -> "\uD83D\uDFE2"      // 🟢
+    }
+
+    private fun machinePayload(payload: AlertPayload): String {
         val fields = listOf(
             TAG,
             payload.facilitySerial,
@@ -52,9 +59,29 @@ object SmsPayloadBuilder {
         return fields.joinToString(DELIMITER)
     }
 
-    /** Returns null if the SMS body doesn't match the expected payload shape. */
+    /**
+     * Builds the full SMS body: a short human-readable header, then a blank
+     * line, then the machine payload. Kept as compact as reasonably possible
+     * since GSM-7 messages over ~160 chars split into multipart SMS — see
+     * SmsDispatcher, which already handles multipart via divideMessage().
+     */
+    fun build(payload: AlertPayload): String {
+        val header = "${priorityEmoji(payload.priority)} ${payload.priority.label} — ${payload.groupId}\n${sanitizeMessage(payload.message)}"
+        return "$header\n\n${machinePayload(payload)}"
+    }
+
+    /**
+     * Returns null if the SMS body doesn't contain a valid payload line
+     * anywhere in it. Locates the payload by its "URG#" prefix rather than
+     * assuming it's the whole body, so this still parses correctly whether
+     * the body is old-format (payload only) or new-format (header + payload).
+     */
     fun parse(smsBody: String): AlertPayload? {
-        val parts = smsBody.split(DELIMITER, limit = FIELD_COUNT)
+        val tagIndex = smsBody.indexOf("$TAG$DELIMITER")
+        if (tagIndex == -1) return null
+
+        val payloadLine = smsBody.substring(tagIndex).trim()
+        val parts = payloadLine.split(DELIMITER, limit = FIELD_COUNT)
         if (parts.size != FIELD_COUNT || parts[0] != TAG) return null
 
         val priorityCode = parts[4].toIntOrNull() ?: return null

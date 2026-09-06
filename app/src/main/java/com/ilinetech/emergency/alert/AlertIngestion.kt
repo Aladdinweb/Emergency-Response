@@ -29,7 +29,8 @@ object AlertIngestion {
     private const val CHANNEL_ID = "emergency_alerts"
     private val DEDUPE_WINDOW_MILLIS = TimeUnit.MINUTES.toMillis(2)
 
-    /** Returns the inserted log row id, or null if this was a duplicate of an already-logged alert. */
+    /** Returns the inserted log row id, or null if this was a duplicate of an already-logged alert
+     *  OR if the app is currently disabled via the Settings master switch — see Prefs.appEnabled. */
     suspend fun ingest(
         context: Context,
         transport: AlertTransport,
@@ -40,6 +41,8 @@ object AlertIngestion {
         message: String,
         senderLabel: String
     ): Long? {
+        if (!com.ilinetech.emergency.core.data.Prefs(context).appEnabled) return null
+
         val dao = AppDatabase.getInstance(context).alertLogDao()
         val now = System.currentTimeMillis()
 
@@ -103,9 +106,18 @@ object AlertIngestion {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val (emoji, colorInt) = when (priority) {
+            TriageLevel.CRITICAL -> "\uD83D\uDD34" to android.graphics.Color.parseColor(priority.colorHex)
+            TriageLevel.MODERATE -> "\uD83D\uDFE0" to android.graphics.Color.parseColor(priority.colorHex)
+            TriageLevel.LOW -> "\uD83D\uDFE2" to android.graphics.Color.parseColor(priority.colorHex)
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_alert) // TODO: replace with app icon asset
-            .setContentTitle("$senderLabel — ${priority.label}")
+            .setColor(colorInt)
+            .setColorized(priority == TriageLevel.CRITICAL)
+            .setContentTitle("$emoji $senderLabel — ${priority.label}")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
