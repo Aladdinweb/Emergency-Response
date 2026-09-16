@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
         AlertLogEntity::class,
         SmsFallbackContactEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -76,9 +76,9 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                     val database = instance ?: return@launch
-                    database.institutionDao().insertAll(listOf(toEntity(SeedData.epspEsSenia)))
+                    database.institutionDao().insertAll(SeedData.oranInstitutions.map { toEntity(it) })
                     database.subBranchDao().insertAll(
-                        SeedData.epspEsSeniaBranches.map {
+                        SeedData.oranBranches.map {
                             SubBranchEntity(id = it.id, name = it.name, institutionId = it.institutionId)
                         }
                     )

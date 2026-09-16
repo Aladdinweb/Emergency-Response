@@ -51,6 +51,10 @@ class MainActivity : AppCompatActivity() {
             showFragment(DashboardFragment())
         }
 
+        binding.fabSos.setOnClickListener {
+            com.ilinetech.emergency.ui.sos.SosDialogFragment().show(supportFragmentManager, "sos")
+        }
+
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> { showFragment(DashboardFragment()); true }

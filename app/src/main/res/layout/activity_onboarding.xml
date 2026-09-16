@@ -162,18 +162,24 @@
                     android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Dropdown, not free text: preset groups A-F per request.
+                 Also fixes the earlier bug where BOTH the TextInputLayout and
+                 its child EditText had android:hint set — Material renders
+                 both the floating label AND the child's hint simultaneously
+                 in that case, which is what looked like overlapping garbled
+                 text. Fix applies below too (phone field). -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_group_id"
                 android:layout_marginBottom="12dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editGroupId"
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerGroupId"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_group_id"
-                    android:inputType="text" />
+                    android:inputType="none"
+                    android:editable="false" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -181,12 +187,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_phone_number"
+                app:helperTextEnabled="true"
+                app:helperText="@string/hint_phone_number"
                 android:layout_marginBottom="8dp">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editPhoneNumber"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_phone_number"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
 

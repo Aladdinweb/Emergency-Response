@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.ilinetech.emergency.BuildConfig
@@ -105,16 +104,20 @@ class DashboardFragment : Fragment() {
             binding.textProfileRole.text = "${profile.role} · ${profile.groupId}"
             binding.textFacilitySerial.text = "${getString(R.string.label_facility_serial)}: ${profile.facilitySerial}"
             binding.textDeptSerial.text = "${getString(R.string.label_dept_serial)}: ${profile.deptSerial}"
+
+            val activeCount = repository.countActiveStaffAtMyFacility()
+            binding.textActiveStaffBadge.text = getString(R.string.active_staff_badge, activeCount)
         }
     }
 
     private fun onSendClicked() {
         val profile = activeProfile ?: return
         val message = binding.editMessage.text.toString().trim()
-        if (message.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.send_alert_missing_message, Toast.LENGTH_SHORT).show()
-            return
-        }
+        // Message is optional — the selected Motif (IncidentReason) already
+        // gives the recipient actionable context on its own. See
+        // SmsPayloadBuilder.buildHumanText() / AlertIngestion.ingest(),
+        // both of which already fall back to the reason's label whenever
+        // the message is blank.
 
         val targetRole = StaffRole.entries[targetDepartmentIndex]
         val priority = TriageLevel.entries[priorityIndex]

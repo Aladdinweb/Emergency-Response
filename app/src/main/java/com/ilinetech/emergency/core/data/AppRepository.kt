@@ -112,6 +112,12 @@ class AppRepository(context: Context) {
         return db.staffMemberDao().getById(id)
     }
 
+    /** See StaffMemberDao.countActiveAtBranch's doc comment for the honest scope/limitation. */
+    suspend fun countActiveStaffAtMyFacility(): Int {
+        val profile = getActiveProfile() ?: return 0
+        return db.staffMemberDao().countActiveAtBranch(profile.subBranchId)
+    }
+
     /**
      * Recomputes the deptSerial for a different role at the SAME facility
      * this profile belongs to — used by the Dashboard's "send to department X

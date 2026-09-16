@@ -91,6 +91,14 @@
                 android:fontFamily="monospace"
                 android:alpha="0.7" />
 
+            <TextView
+                android:id="@+id/textActiveStaffBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+
         </LinearLayout>
 
         <!-- Send alert panel -->
@@ -174,6 +182,7 @@
                 android:textAllCaps="false"
                 app:cornerRadius="28dp"
                 android:backgroundTint="@color/brand_accent"
+                android:textColor="#FFFFFF"
                 android:text="@string/action_send_alert" />
 
             <TextView

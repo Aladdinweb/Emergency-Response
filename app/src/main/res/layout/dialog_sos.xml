@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sos_title"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/textActiveStaffBadge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sos_national_numbers_title"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:alpha="0.7"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonProtectionCivile14"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"
+        android:text="@string/sos_protection_civile_14" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonProtectionCivile1021"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"
+        android:text="@string/sos_protection_civile_1021" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonPolice"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"
+        android:text="@string/sos_police" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonGendarmerie"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginBottom="24dp"
+        android:text="@string/sos_gendarmerie" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sos_internal_title"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:alpha="0.7"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSosSecurity"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:textAllCaps="false"
+        app:cornerRadius="28dp"
+        android:backgroundTint="@color/brand_accent"
+        android:textColor="#FFFFFF"
+        android:text="@string/action_sos_security" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sos_security_hint"
+        android:textSize="11sp"
+        android:alpha="0.6"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/textSosResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

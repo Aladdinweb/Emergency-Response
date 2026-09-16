@@ -113,6 +113,45 @@ degradation, not a crash risk.
 8. No visible branding/version → footer added to Settings + Onboarding
 9. No persistent project-memory doc → this file
 
+## Round 3 changes (UI/UX & data refinement slice)
+1. **Seeded the real Oran EPSP directory** — 9 institutions, 27 sub-branches
+   (previously only EPSP ES SENIA existed as a placeholder). Schema bumped
+   to **version 5** specifically to force a reseed via the destructive-
+   migration fallback — anyone with an existing install will lose their
+   registered profile and need to re-register after this update (expected
+   and acceptable pre-release; flagged loudly here so it isn't a surprise).
+2. **Fixed a real Material Components bug**: the onboarding "Groupe/Équipe"
+   and "Numéro de téléphone" fields had `android:hint` set on BOTH the
+   `TextInputLayout` AND its child `EditText` — Material renders both
+   simultaneously in that case, which is what looked like overlapping
+   garbled text. Fixed everywhere it occurred. Groupe/Équipe is now a
+   dropdown (A-F) instead of free text.
+3. **Dialogs switched to `MaterialAlertDialogBuilder`** (was plain
+   `androidx.appcompat.app.AlertDialog.Builder`, which doesn't reliably
+   inherit Material3 DayNight theming — the likely cause of dark-on-dark
+   text in Settings dialogs). Accent-tinted buttons also got an explicit
+   white `textColor` as a belt-and-suspenders fix.
+4. **Alert message is now optional** — Motif (IncidentReason) alone is
+   sufficient context; the mandatory-message check was removed.
+5. **Removed the duplicate "Application activée" switch from Settings** —
+   lives only on the Dashboard header and the connection-status
+   notification now, avoiding two controls for the same underlying pref.
+6. **SOS quick-access**: a floating "SOS" button, reachable from every tab,
+   opens a bottom sheet with one-tap dialer shortcuts (Protection Civile
+   14/1021, Police 1548, Gendarmerie 1055 — via `ACTION_DIAL`, no new
+   permission needed) plus an internal "SOS SÉCURITÉ" panic button that
+   sends a pre-filled CRITICAL/AGRESSION alert to the facility's Agent de
+   sécurité role through the same send path as the Dashboard.
+7. **Active-staff badge** ("🟢 N Personnel en service") on both the
+   Dashboard and the SOS modal. **Honest limitation, not fixed this
+   round**: `StaffMemberEntity` is a per-device table with no cross-device
+   sync, so this counts profiles registered on THIS device's local DB —
+   accurate for a shared station with multiple registered profiles, but
+   does NOT aggregate registrations made on separate phones across a real
+   facility. A true facility-wide count needs a shared directory (e.g.
+   Firestore), which doesn't exist yet — natural next extension of the
+   Cloud Function work.
+
 ## Known gaps / outstanding roadmap
 - **Cloud Function not yet deployed** by anyone — code exists, deployment is a manual step (`CLOUD_FUNCTION_NOTES.md`).
 - **Per-recipient SMS delivery confirmation** still absent (sent-to-OS vs. carrier-confirmed-delivered aren't distinguished).
@@ -124,3 +163,5 @@ degradation, not a crash risk.
 - **Alarm has no foreground-service backing** — currently a plain `MediaPlayer` triggered from a `BroadcastReceiver`; likely reliable in practice (active audio playback is one of the OS's background-keep-alive signals) but not as bulletproof as promoting it to its own foreground service would be. Worth hardening if missed alarms are ever reported.
 - **No multi-step onboarding wizard** — the cascade is still a single scrollable screen (with better Material styling now), not a guided step-by-step flow.
 - **Launcher icon is a hand-drawn vector**, not designed in a proper icon tool — functional and reasonably modern-looking, but worth a real design pass eventually.
+- **Active-staff count is per-device, not facility-wide** — see Round 3 item 7 above; needs a shared staff directory to be real across multiple phones.
+- **Only Oran wilaya is seeded** — the other 57 wilayas have no institution data yet; onboarding will correctly show "no institutions" for any other wilaya/type combination until seeded.

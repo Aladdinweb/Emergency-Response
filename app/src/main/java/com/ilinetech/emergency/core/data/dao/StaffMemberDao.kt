@@ -40,4 +40,17 @@ interface StaffMemberDao {
 
     @Query("UPDATE staff_members SET isActive = 0 WHERE id = :id")
     suspend fun deactivate(id: String)
+
+    /**
+     * Counts active profiles registered ON THIS DEVICE's local database for
+     * a given sub-branch. Honest limitation: StaffMemberEntity is a
+     * per-device table with no cross-device sync — this is accurate for a
+     * shared station where several staff register on the same physical
+     * device (explicitly supported, see this entity's class doc), but does
+     * NOT aggregate registrations made on separate phones. A true
+     * facility-wide live count needs a shared directory (e.g. Firestore),
+     * which doesn't exist yet — see STATE.md.
+     */
+    @Query("SELECT COUNT(*) FROM staff_members WHERE isActive = 1 AND subBranchId = :subBranchId")
+    suspend fun countActiveAtBranch(subBranchId: String): Int
 }

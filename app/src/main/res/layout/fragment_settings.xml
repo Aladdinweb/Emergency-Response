@@ -18,40 +18,11 @@
             android:textStyle="bold"
             android:layout_marginBottom="20dp" />
 
-        <!-- Master switch, called out on its own since it's the most consequential toggle -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/setting_app_enabled"
-                    android:textStyle="bold" />
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switchAppEnabled"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_app_enabled_hint"
-                android:textSize="12sp"
-                android:alpha="0.65"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
+        <!-- The "Application activée" master switch lives ONLY on the
+             Dashboard header and the connection-status notification now —
+             removed from here per explicit request to avoid two controls
+             for the same state (Prefs.appEnabled) confusing which is
+             authoritative. -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -169,7 +140,8 @@
             android:textAllCaps="false"
             app:cornerRadius="28dp"
             android:text="@string/action_deregister"
-            android:backgroundTint="@color/brand_accent" />
+            android:backgroundTint="@color/brand_accent"
+            android:textColor="#FFFFFF" />
 
         <TextView
             android:id="@+id/textFooter"

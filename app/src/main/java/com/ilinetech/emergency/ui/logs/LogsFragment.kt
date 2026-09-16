@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -92,7 +92,7 @@ class LogsFragment : Fragment() {
     }
 
     private fun confirmClearAll() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.clear_all_confirm_title)
             .setMessage(R.string.clear_all_confirm_message)
             .setNegativeButton(R.string.action_cancel, null)

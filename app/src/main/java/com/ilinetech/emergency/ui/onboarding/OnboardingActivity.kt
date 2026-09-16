@@ -49,6 +49,8 @@ class OnboardingActivity : AppCompatActivity() {
     private var subBranchIndex = 0
     private var departmentIndex = 0
     private var roleIndex = 0
+    private var groupIdIndex = 0
+    private val groupIdLabels = listOf("A", "B", "C", "D", "E", "F")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +105,11 @@ class OnboardingActivity : AppCompatActivity() {
             updateRoleFieldForSelectedDepartment()
         }
         updateRoleFieldForSelectedDepartment()
+
+        val groupAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, groupIdLabels)
+        binding.spinnerGroupId.setAdapter(groupAdapter)
+        binding.spinnerGroupId.setText(groupIdLabels[0], false)
+        binding.spinnerGroupId.setOnItemClickListener { _, _, position, _ -> groupIdIndex = position }
     }
 
     private fun updateRoleFieldForSelectedDepartment() {
@@ -159,12 +166,12 @@ class OnboardingActivity : AppCompatActivity() {
         val institution = currentInstitutions.getOrNull(institutionIndex)
         val subBranch = currentSubBranches.getOrNull(subBranchIndex)
         val fullName = binding.editFullName.text.toString().trim()
-        val groupId = binding.editGroupId.text.toString().trim()
+        val groupId = groupIdLabels[groupIdIndex]
         val phoneNumber = binding.editPhoneNumber.text.toString().trim()
         val department = StaffDepartment.entries[departmentIndex]
         val role = StaffRole.entries.filter { it.department == department }.getOrNull(roleIndex)
 
-        if (institution == null || subBranch == null || fullName.isEmpty() || groupId.isEmpty() || role == null) {
+        if (institution == null || subBranch == null || fullName.isEmpty() || role == null) {
             Toast.makeText(this, R.string.error_select_all_fields, Toast.LENGTH_SHORT).show()
             return
         }

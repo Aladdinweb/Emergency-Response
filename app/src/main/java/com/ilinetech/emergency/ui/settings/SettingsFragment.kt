@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -35,20 +35,10 @@ class SettingsFragment : Fragment() {
         repository = AppRepository(requireContext().applicationContext)
         val prefs = repository.prefs
 
-        binding.switchAppEnabled.isChecked = prefs.appEnabled
         binding.switchDarkTheme.isChecked = prefs.isDarkTheme
         binding.switchShowStatusBar.isChecked = prefs.showStatusBarIndicator
         binding.switchAlertSound.isChecked = prefs.alertSoundEnabled
         binding.switchAlertVibration.isChecked = prefs.alertVibrationEnabled
-
-        binding.switchAppEnabled.setOnCheckedChangeListener { _, checked ->
-            prefs.appEnabled = checked
-            if (checked) {
-                ConnectionForegroundService.start(requireContext())
-            } else {
-                ConnectionForegroundService.stop(requireContext())
-            }
-        }
 
         binding.switchDarkTheme.setOnCheckedChangeListener { _, checked ->
             prefs.isDarkTheme = checked
@@ -101,7 +91,7 @@ class SettingsFragment : Fragment() {
                 binding.textUpdateStatus.text = getString(R.string.update_up_to_date)
                 return@launch
             }
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.update_available_title)
                 .setMessage(
                     getString(
@@ -128,7 +118,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun confirmDeregister() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.deregister_confirm_title)
             .setMessage(R.string.deregister_confirm_message)
             .setNegativeButton(R.string.action_cancel, null)

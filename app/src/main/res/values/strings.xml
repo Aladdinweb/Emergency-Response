@@ -73,6 +73,23 @@
     <string name="action_confirm">Confirmer</string>
     <string name="settings_no_profile">Aucun profil actif à afficher.</string>
 
+    <!-- Active staff badge -->
+    <string name="active_staff_badge">🟢 %1$d Personnel en service</string>
+
+    <!-- SOS -->
+    <string name="action_sos">SOS</string>
+    <string name="sos_title">Urgence</string>
+    <string name="sos_national_numbers_title">Numéros d\'urgence nationaux</string>
+    <string name="sos_protection_civile_14">Protection Civile (14)</string>
+    <string name="sos_protection_civile_1021">Protection Civile (1021)</string>
+    <string name="sos_police">Police Nationale (1548)</string>
+    <string name="sos_gendarmerie">Gendarmerie Nationale (1055)</string>
+    <string name="sos_internal_title">Sécurité interne de l\'établissement</string>
+    <string name="action_sos_security">SOS SÉCURITÉ</string>
+    <string name="sos_security_hint">Alerte immédiate à tous les agents de sécurité actifs de votre établissement.</string>
+    <string name="sos_security_sent">Alerte SOS Sécurité envoyée à %1$d agent(s).</string>
+    <string name="sos_security_no_contacts">Aucun agent de sécurité enregistré pour le repli SMS.</string>
+
     <!-- Updates -->
     <string name="setting_check_updates">Vérifier les mises à jour</string>
     <string name="update_checking">Recherche de mise à jour…</string>
