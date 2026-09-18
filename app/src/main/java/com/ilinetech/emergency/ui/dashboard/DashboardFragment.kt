@@ -56,6 +56,13 @@ class DashboardFragment : Fragment() {
         loadProfile()
 
         binding.buttonSendAlert.setOnClickListener { onSendClicked() }
+        binding.buttonSos.setOnClickListener {
+            com.ilinetech.emergency.ui.sos.SosDialogFragment().show(parentFragmentManager, "sos")
+        }
+        binding.textActiveStaffBadge.setOnClickListener {
+            com.ilinetech.emergency.ui.personnel.PersonnelDialogFragment()
+                .show(parentFragmentManager, com.ilinetech.emergency.ui.personnel.PersonnelDialogFragment.TAG)
+        }
         binding.textFooter.text = getString(R.string.footer_combined, getString(R.string.footer_copyright), getString(R.string.footer_version, BuildConfig.VERSION_NAME))
     }
 

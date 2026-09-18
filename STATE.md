@@ -152,6 +152,26 @@ degradation, not a crash risk.
    Firestore), which doesn't exist yet — natural next extension of the
    Cloud Function work.
 
+## Round 4 changes (UI polish + splash screen)
+1. **SOS button relocated** — was a floating action button overlapping the
+   bottom nav (unpolished, obstructed content); now a full-width orange
+   (`#F57C00`) secondary button directly under "Envoyer l'alerte" on the Dashboard.
+2. **"Personnel en service" badge is now interactive** — tapping it (on
+   both the Dashboard and the SOS modal) opens a bottom sheet listing
+   active staff with name, role, and duty group. Same per-device scope
+   limitation as the count itself (see Round 3 item 7 / below).
+3. **Added the missing "Polyclinique Aadl Ain Beida Mabrouk Loucif"** under
+   EPSP ES SENIA. Schema bumped to **version 6** to force reseed (existing
+   installs lose their registered profile again — expected pre-release).
+4. **Icon redesigned**: shield outline + medical cross + ECG pulse-line
+   motif (cyan-to-blue gradient), replacing the earlier bolt-only design.
+5. **Splash screen added** via `androidx.core:core-splashscreen`, with a
+   custom fade + overshoot-scale exit transition. Fixed a real latent bug
+   found while wiring it: `OnboardingActivity` is the actual manifest
+   launcher, but never checked whether onboarding was already complete —
+   a returning registered user would see the registration form on every
+   cold start. Now redirects straight to the Dashboard when appropriate.
+
 ## Known gaps / outstanding roadmap
 - **Cloud Function not yet deployed** by anyone — code exists, deployment is a manual step (`CLOUD_FUNCTION_NOTES.md`).
 - **Per-recipient SMS delivery confirmation** still absent (sent-to-OS vs. carrier-confirmed-delivered aren't distinguished).

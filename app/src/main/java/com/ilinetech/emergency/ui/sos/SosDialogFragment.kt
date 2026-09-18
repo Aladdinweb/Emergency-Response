@@ -54,6 +54,10 @@ class SosDialogFragment : BottomSheetDialogFragment() {
         binding.buttonPolice.setOnClickListener { dial("1548") }
         binding.buttonGendarmerie.setOnClickListener { dial("1055") }
         binding.buttonSosSecurity.setOnClickListener { onSosSecurityClicked() }
+        binding.textActiveStaffBadge.setOnClickListener {
+            com.ilinetech.emergency.ui.personnel.PersonnelDialogFragment()
+                .show(parentFragmentManager, com.ilinetech.emergency.ui.personnel.PersonnelDialogFragment.TAG)
+        }
     }
 
     private fun loadActiveStaffBadge() {

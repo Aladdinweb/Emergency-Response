@@ -61,6 +61,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.2")
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")

@@ -53,4 +53,8 @@ interface StaffMemberDao {
      */
     @Query("SELECT COUNT(*) FROM staff_members WHERE isActive = 1 AND subBranchId = :subBranchId")
     suspend fun countActiveAtBranch(subBranchId: String): Int
+
+    /** Backs the interactive "Personnel en service" modal — same per-device scope caveat as countActiveAtBranch above. */
+    @Query("SELECT * FROM staff_members WHERE isActive = 1 AND subBranchId = :subBranchId ORDER BY fullName")
+    fun observeActiveAtBranch(subBranchId: String): Flow<List<StaffMemberEntity>>
 }

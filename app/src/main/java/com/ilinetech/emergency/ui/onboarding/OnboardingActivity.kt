@@ -1,14 +1,21 @@
 package com.ilinetech.emergency.ui.onboarding
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.ilinetech.emergency.R
 import com.ilinetech.emergency.core.data.AppRepository
+import com.ilinetech.emergency.core.data.Prefs
 import com.ilinetech.emergency.core.data.entities.InstitutionEntity
 import com.ilinetech.emergency.core.data.entities.SubBranchEntity
 import com.ilinetech.emergency.core.model.AlgerianWilayas
@@ -34,6 +41,14 @@ import kotlinx.coroutines.launch
  * built-in "selected index" concept the way Spinner does, each field's
  * current selection is tracked in a local var, updated from
  * setOnItemClickListener.
+ * Also the app's actual manifest LAUNCHER activity (see AndroidManifest.xml)
+ * — MainActivity is only reached via explicit Intent, never cold-started
+ * directly. That means THIS activity, not MainActivity, is responsible for
+ * checking whether onboarding is already complete and redirecting straight
+ * to the Dashboard for returning users — a check that was missing before
+ * (a registered user would see the registration form on every cold start).
+ * installSplashScreen() must be called here too, before super.onCreate(),
+ * since this is genuinely the first thing the OS draws.
  */
 class OnboardingActivity : AppCompatActivity() {
 
@@ -53,7 +68,37 @@ class OnboardingActivity : AppCompatActivity() {
     private val groupIdLabels = listOf("A", "B", "C", "D", "E", "F")
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Returning, already-registered users skip straight to the
+        // Dashboard — see class doc comment for why this check belongs
+        // here specifically.
+        if (Prefs(applicationContext).onboardingComplete) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
+        // Smooth fade + scale-up exit for the splash icon rather than the
+        // platform's abrupt default disappearance — the "smooth fade/scale
+        // animation" this was asked for.
+        splashScreen.setOnExitAnimationListener { splashScreenView ->
+            val scaleX = ObjectAnimator.ofFloat(splashScreenView.iconView, View.SCALE_X, 1f, 1.15f, 0f)
+            val scaleY = ObjectAnimator.ofFloat(splashScreenView.iconView, View.SCALE_Y, 1f, 1.15f, 0f)
+            val fade = ObjectAnimator.ofFloat(splashScreenView.view, View.ALPHA, 1f, 0f)
+            listOf(scaleX, scaleY, fade).forEach { it.interpolator = OvershootInterpolator(0.3f) }
+
+            AnimatorSet().apply {
+                playTogether(scaleX, scaleY, fade)
+                duration = 400L
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) = splashScreenView.remove()
+                })
+                start()
+            }
+        }
+
         binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
         repository = AppRepository(applicationContext)

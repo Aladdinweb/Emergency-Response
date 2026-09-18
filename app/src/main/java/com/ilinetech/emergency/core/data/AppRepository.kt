@@ -118,6 +118,9 @@ class AppRepository(context: Context) {
         return db.staffMemberDao().countActiveAtBranch(profile.subBranchId)
     }
 
+    /** Backs the interactive personnel list modal — same per-device scope as the count above. */
+    fun observeActiveStaffAtBranch(subBranchId: String) = db.staffMemberDao().observeActiveAtBranch(subBranchId)
+
     /**
      * Recomputes the deptSerial for a different role at the SAME facility
      * this profile belongs to — used by the Dashboard's "send to department X

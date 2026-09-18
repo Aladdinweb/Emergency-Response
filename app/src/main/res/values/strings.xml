@@ -75,9 +75,12 @@
 
     <!-- Active staff badge -->
     <string name="active_staff_badge">🟢 %1$d Personnel en service</string>
+    <string name="personnel_title">Personnel en service</string>
+    <string name="personnel_empty">Aucun autre membre du personnel enregistré sur cet appareil.</string>
 
     <!-- SOS -->
     <string name="action_sos">SOS</string>
+    <string name="action_sos_full">SOS - Appel &amp; Panique d\'Urgence</string>
     <string name="sos_title">Urgence</string>
     <string name="sos_national_numbers_title">Numéros d\'urgence nationaux</string>
     <string name="sos_protection_civile_14">Protection Civile (14)</string>

@@ -16,4 +16,16 @@
         <item name="android:layout_marginBottom">4dp</item>
     </style>
 
+    <!-- Splash screen: shown before OnboardingActivity (the manifest launcher)
+         inflates anything. windowSplashScreenAnimatedIcon reuses the launcher
+         foreground so the pulse/shield motif is the very first thing seen.
+         postSplashScreenTheme hands off to the real app theme once
+         installSplashScreen() runs in code. -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_primary_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <item name="postSplashScreenTheme">@style/Theme.IlineEmergency</item>
+    </style>
+
 </resources>

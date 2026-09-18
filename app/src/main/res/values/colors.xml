@@ -10,4 +10,6 @@
 
     <color name="status_online">#2ECC71</color>
     <color name="status_offline">#E67E22</color>
+
+    <color name="sos_orange">#F57C00</color>
 </resources>

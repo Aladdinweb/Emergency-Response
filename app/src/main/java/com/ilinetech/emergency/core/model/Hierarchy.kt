@@ -91,6 +91,7 @@ object SeedData {
         branch("branch-el-kerma", "El Kerma", epspEsSenia),
         branch("branch-sidi-maarouf", "Sidi Maarouf", epspEsSenia),
         branch("branch-sidi-chami", "Sidi Chami", epspEsSenia),
+        branch("branch-aadl-ain-beida-mabrouk-loucif", "Polyclinique Aadl Ain Beida Mabrouk Loucif", epspEsSenia),
 
         // EPSP HAI BOUAMAMA
         branch("branch-hai-bouamama", "Hai Bouamama", epspHaiBouamama),
